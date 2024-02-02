@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+</head>
+<body>
+    <form name="form" action="todo/create" method="post" style=" height: 90vh; position: relative;">
+        <div style="width: 100%; height: 100%; position: relative; background: #EAEAEA; ">
+            <div style="left: 90%; top: 3%; width: 8%; height: 5%; position: absolute;">
+                <input type="button" onclick="logout()" style=" width: 100%; height: 100%; background: #00B2CB; border-radius: 100px; border: none; cursor: pointer;" />
+                <span style="color: white; font-size: 16px; font-family: Inter; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-weight: 600; word-wrap: break-word">로그아웃</span>
+            </div>
+            <div style="left: 30%; width: 40%; height: 70%; top: 15%; position: absolute;">
+                <div style="width: 100%; height: 100%; position: absolute; background: white; border-radius: 30px"></div>
+                <div id="dateString" style="left: 5%; top: 5%; position: absolute; color: #4D4D4D; font-size: 35px; font-family: Inter; font-weight: 500; word-wrap: break-word"></div>
+                <div id="dayOfWeek" style="left: 5%; top: 15%; position: absolute; color: #6B6B6B; font-size: 20px; font-family: Inter; font-weight: 300; word-wrap: break-word">월요일</div>
+                <div style="left: 5%; width: 85%; top: 23%; height: 8%; position: absolute; background: white; border: 1px #AAAAAA solid">
+                    <input type="text" name="content" placeholder="할 일을 입력하세요." onkeyup="createTodo()" style="width: 98%; height:90%; color: #B0B0B0; border:none; font-size: 25px; font-family: Inter; font-weight: 400; word-wrap: break-word" />
+                </div>
+                <hr style="left: 5%; top: 32%; position: absolute; width: 90%;"/>
+
+                <div style="left: 5%; top: 37%; width: 90%; height: 75%; position: absolute; overflow-y: auto;">
+                    <ul th:id="'todo_' +  ${todo.id}" th:each="todo : ${todoList}" style="list-style:none; padding: 0; margin-bottom: 5px; height: 40px;">
+                        <li style="margin-top: 20px;">
+                        <div th:attr="data-id=${todo.id}, todo_status=${todo.status}" onclick="toggleCheckbox(this)" style="width: 7%; height: 9%; margin: 8px; position:absolute; ">
+                            <div th:id="'checkBox_' + ${todo.id}" th:style="'border: 2px solid ' + (${todo.status == 'Y' ? '#00B2CB' : '#dddddd'}) + '; width: 70%; height: 75%; position: absolute; background: white; border-radius: 1000px; pointer-events: none;'">
+                            </div>
+                            <input type="checkbox" th:id="'checkMark_' + ${todo.id}" name="status" style="position: absolute; width: 100%; height: 100%; opacity: 0; z-index: 1; display: none;">
+                            <label th:id="'checkMarkLabel_' + ${todo.id}"
+                                   th:style="${todo.status == 'Y' ? 'display: none;' : 'display: block;'} + ' color: #dddddd; position: absolute; left: 40%; top: 45%; transform: translate(-50%, -50%); width: 100%; text-align: center; font-size: 25px; font-family: Inter; font-weight: 300;'">
+                                ✓
+                            </label>
+                        </div>
+                            <div style="left: 10%; width:85%; height:13%; position:absolute;"><input type="text" th:id="'todo_input_' + ${todo.id}" th:value="${todo.content}" th:attr="input-id=${todo.id}" onkeyup="updateTodo(this, event)"
+                                                                                                      th:style="${todo.status == 'N'} ? 'color: #dddddd; width: 90%; height: 80%; border: 1px solid #dddddd;' : 'width: 90%; height: 80%; border: 1px solid #dddddd;'"/>
+                            </div>
+                        <div style="left: 90%; width: 6%; height: 9%; position: absolute;" ><img th:id="'delete_' + ${todo.id}" th:attr="btn-id=${todo.id}" onclick="deleteTodo(this)" style="width:100%; height:100%; position: absolute;" src="https://i.ibb.co/MkD0VvL/free-icon-delete-6700075.png" /></div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </form>
+    <script type="text/javascript">
+        var today = new Date();
+        console.log(today);
+
+        var year = today.getFullYear();
+        var month = ('0' + (today.getMonth() + 1)).slice(-2);
+        var day = ('0' + today.getDate()).slice(-2);
+        var dateString = year + '년 ' + month  + '월 ' + day + '일';
+        console.log(dateString);
+
+        document.getElementById("dateString").innerText = dateString;
+
+        var week = new Array('일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일');
+        var dayOfWeek = week[today.getDay()];
+        console.log(dayOfWeek);
+        document.getElementById("dayOfWeek").innerText = dayOfWeek;
+
+
+
+        function toggleCheckbox(element) {
+            console.log("앙?");
+            var id = element.getAttribute('data-id');
+            console.log(id);
+
+            var isChecked = element.getAttribute('todo_status');
+            console.log(isChecked);
+            var status = isChecked === 'Y' ? 'N' : 'Y';
+
+            console.log(status);
+            var url = '/todo/updateStatus';
+
+            $.ajax({
+                type: "GET",
+                url: url,
+                data: {
+                    todo_id: id,
+                    todo_status: status
+                },
+                success: function (response) {
+                    console.log('서버 요청 성공1');
+                    updateCheckboxUI(element, response);
+                },
+                error: function () {
+                    console.error('서버 요청 실패1');
+                }
+            });
+        }
+
+        function logout() {
+           var logoutLink = document.createElement('a');
+           logoutLink.href = '/member/logout';
+           logoutLink.click();
+        }
+
+         function createTodo() {
+            if (window.event.keyCode == 13) {
+                form.submit();
+            }
+        }
+
+         function updateTodo(element, event) {
+            if (event.keyCode === 13) {
+
+                var id = element.getAttribute('input-id');
+                console.log(id);
+                var ti = document.getElementById("todo_input_" + id);
+
+                var content = ti.value;
+                var url = '/todo/update';
+
+                $.ajax({
+                    type: "GET",
+                    url: url,
+                    data: {
+                        todo_id: id,
+                        todo_content: content
+                    },
+                    success: function (response) {
+                        console.log('서버 요청 성공2');
+                        updateContentUI(response);
+                    },
+                    error: function () {
+                        console.error('서버 요청 실패2');
+                    }
+                });
+            }
+        }
+
+        function deleteTodo(element) {
+            var id = element.getAttribute("btn-id");
+            console.log(id);
+
+            var url = '/todo/delete';
+            $.ajax({
+                type: "GET",
+                url: url,
+                data: {
+                    todo_id: id,
+                },
+                success: function (response) {
+                    console.log('서버 요청 성공');
+                    updateDeletedUI(response);
+                },
+                error: function () {
+                    console.error('서버 요청 실패');
+                }
+            });
+        }
+
+        // 서버 응답을 기반으로 화면 동적 업데이트
+
+        function updateDeletedUI(response) {
+            console.log(response);
+
+            // 예시: 서버에서 받은 데이터가 JSON 형식일 때
+            var data = JSON.parse(response);
+            console.log(data);
+             console.log(data.todo_id);
+
+            // 새로운 할 일이 삭제되었을 경우, 해당 요소를 화면에서 제거
+            var todoElement = document.getElementById('todo_' + data.todo_id);
+            if (todoElement) {
+                todoElement.parentNode.removeChild(todoElement);
+            }
+        }
+
+        function updateContentUI(response) {
+            var data = JSON.parse(response);
+            console.log(data.todo_content);
+            console.log(data.todo_id);
+
+             // 할 일이 수정되었을 경우, 해당 요소를 화면에서 수정
+            var todoElement = document.getElementById('todo_input_' + data.todo_id);
+            if (todoElement) {
+                todoElement.value = data.todo_content;
+            }
+        }
+
+        function updateCheckboxUI(element, response) {
+            var data = JSON.parse(response);
+            console.log(data.todo_status);
+            console.log(data.todo_id);
+
+            var id = data.todo_id;
+            var status = data.todo_status;
+
+            var checkbox = document.getElementById('checkBox_' + id);
+            var checkMark = document.getElementById('checkMark_' + id);
+            var checkMarkLabel = document.getElementById('checkMarkLabel_' + id);
+            var todoInput = document.getElementById('todo_input_' + id);
+
+
+            // 체크박스가 체크되어 있으면 (검정)해제, 해제되어(파랑) 있으면 체크
+            if (status == 'Y') {
+                checkbox.style.border = '2px solid #00B2CB';
+                todoInput.style.color = '';
+                checkMarkLabel.style.display = 'none';
+            } else {
+                checkMark.style.color = '#dddddd';
+                checkbox.style.border = '2px solid #dddddd';
+                todoInput.style.color = '#dddddd';
+                checkMarkLabel.style.display = 'block';
+            }
+            // 화면에서 todo_status 속성 업데이트
+            element.setAttribute('todo_status', status);
+        }
+    </script>
+</body>
+</html>

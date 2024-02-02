@@ -1,0 +1,156 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        function register() {
+            if(form.id.value == "") {
+                alert("ID를 입력하십시오.");
+                form.id.focus();
+                return false;
+            }
+            if(form.password.value == "") {
+                alert("비밀번호를 입력하십시오.");
+                form.password.focus();
+                return false;
+            }
+            if(form.password.value != form.password_check.value) {
+                pwCheck.style.display = '';
+                form.password_check.focus();
+                return false;
+            }
+            if (form.email.value == "") {
+		        alert("이메일을 입력하십시오.");
+		        form.email.focus();
+		        return false;
+	        }
+	        if (form.name.value == "") {
+		        alert("이름을 입력하십시오.");
+		        form.name.focus();
+		        return false;
+	        }
+
+            // 이메일 중복 여부 확인
+            if ($("#emailFalse").css('display') == 'block') {
+                return false;
+            }
+            console.log("이게아닌가" + $("#existIdResult").val);
+            // 아이디 중복 여부 확인
+            if ($("#existIdResult").val() == 'N') {
+                alert("아이디 중복확인을 해주세요.");
+                return false;
+            }
+
+	        form.submit();
+        }
+
+        function existId() {
+            // AJAX를 사용하여 서버에 중복 여부 확인 요청
+            var id = $("#id").val();
+
+            var url = '/member/register/idCheck'
+
+            $.ajax({
+                type: "GET",
+                url: url,
+                data : {
+        		    id : id
+        		},
+                success: function(response) {
+                    console.log('서버 응답:', response);
+
+                    // 서버로부터 받은 응답에 alert 표시
+                    if (response == true) {
+                        alert("사용할 수 없는 아이디입니다.");
+                        $("#existIdResult").val('N');
+                    } else {
+                        alert("사용 가능한 아이디입니다.");
+                        $("#existIdResult").val('Y');
+                    }
+                },
+                error: function() {
+                    console.error('서버 요청 실패');
+                }
+            });
+        }
+
+        function existEmail() {
+            // AJAX를 사용하여 서버에 중복 여부 확인 요청
+            var email = $("#email").val();
+
+           console.log('사용자 이메일 중복확인');
+           var url = '/member/register/emailCheck'
+
+            $.ajax({
+                type: "GET",
+                url: url,
+                data : {
+                    email : email
+                },
+                success: function(response) {
+                    if(response == true) {
+                        $("#emailTrue").css('display', 'none');
+                        $("#emailFalse").css('display', 'block');
+                    } else {
+                        $("#emailTrue").css('display', 'block');
+                        $("#emailFalse").css('display', 'none');
+                    }
+                },
+                error: function() {
+                    console.error('서버 요청 실패');
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    <form name="form" action="/member/register" method="post" style=" height: 90vh;">
+        <div style="width: 100%; height: 100%; position: relative; background: white">
+            <div style="left: 45%; top: 20%; position: absolute; color: #00B2CB; font-size: 48px; font-family: Krona One; font-weight: 400; word-wrap: break-word">TODO</div>
+
+            <div style="width: 30%; height: 7%; left: 35%; top: 30%; position: absolute; z-index: 1;">
+                <div style="width: 100%; height: 100%; position: absolute; background: white; border-radius: 20px; border: 1.20px #505050 solid; z-index: 1;"></div>
+                <input type="text" id="id" name="id" placeholder="아이디" style="top: 20%; left: 5%; width: 70%; position: absolute; border: none; color: #505050; font-size: 26px; font-family: Inter; font-weight: 400; word-wrap: break-word; z-index: 2;"/>
+                <div style="width: 18%; height: 55%; left: 80%; top:25%; position: absolute; z-index: 100;">
+                    <input type="button" value="중복확인" onclick="existId()" style="width: 100%; height: 100%; background: #00B2CB; border: none; border-radius: 10px; font-size: 14px; font-family: Inter; color: white; font-weight: 400; cursor: pointer; word-wrap: break-word;"/>
+                    <input type="hidden" id="existIdResult" value="N"/>
+                </div>
+            </div>
+
+            <div style="width: 30%; height: 7%; left: 35%; top: 40%; position: absolute">
+                <div style="width: 100%; height: 100%; position: absolute; background: white; border-radius: 20px; border: 1.20px #505050 solid"></div>
+                <input type="text" onkeyup="existEmail()" id="email" name="email" placeholder="이메일" style=" position: absolute; border: none; top: 20%; left: 5%; width: 90%; color: #505050; font-size: 26px; font-family: Inter; font-weight: 400; word-wrap: break-word"/>
+                <p id="emailTrue" style="position: absolute; left: 2%; width: 80%; top: 80%; font-size:16px; font-weight: 300; color: #ff0d0d; display:none;">
+                    사용가능한 이메일입니다.
+                </p>
+                <p id="emailFalse" style="position: absolute; left: 2%; width: 80%; top: 80%; font-size:16px; font-weight: 300; color: #ff0d0d; display:none;">
+                    이미 가입된 이메일입니다.
+                </p>
+            </div>
+
+            <div style="width: 30%; height: 7%; left: 35%; top: 52%; position: absolute">
+                <div style="width: 100%; height: 100%; position: absolute; background: white; border-radius: 20px; border: 1.20px #505050 solid"></div>
+                <input type="text" name="name" placeholder="이름" style=" position: absolute; border: none; top: 20%; left: 5%; width: 90%; color: #505050; font-size: 26px; font-family: Inter; font-weight: 400; word-wrap: break-word"/>
+            </div>
+
+            <div style="width: 30%; height: 7%; left: 35%; top: 62%; position: absolute">
+                <div style="width: 100%; height: 100%; position: absolute; background: white; border-radius: 20px; border: 1.20px #505050 solid"></div>
+                <input type="password" name="password" placeholder="비밀번호" style=" position: absolute; border: none; top: 20%; left: 5%; width: 90%; color: #505050; font-size: 26px; font-family: Inter; font-weight: 400; word-wrap: break-word"/>
+            </div>
+            <div style="width: 30%; height: 7%; left: 35%; top: 72%; position: absolute">
+                <div style="width: 100%; height: 100%; position: absolute; background: white; border-radius: 20px; border: 1.20px #505050 solid"></div>
+                <input type="password" name="password_check" placeholder="비밀번호 확인" style=" position: absolute; border: none; top: 20%; left: 5%; width: 90%; color: #505050; font-size: 26px; font-family: Inter; font-weight: 400; word-wrap: break-word"/>
+                <p id="pwCheck" style="width: 80%; top: 80%; position: absolute; font-size:16px; font-weight: 300; color: #ff0d0d; display:none;">
+                    비밀번호를 다시 입력하세요.
+                </p>
+            </div>
+
+            <div style="width: 30%; height: 7%; left: 35%; top: 83%; position: absolute">
+                <input type="button" value="가입하기" onclick="register()" style="width: 100%; height: 100%; position: absolute; background: #00B2CB; border: none; border-radius: 20px; color: white; font-size: 15px; cursor: pointer;">
+            </div>
+        </div>
+    </form>
+</body>
+</html>
