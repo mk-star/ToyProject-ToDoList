@@ -34,3 +34,6 @@
 
 ### 할일 삭제
 <img src = "https://github.com/mk-star/ToyProject-ToDoList/assets/113525126/65b9c87f-3f88-413d-87be-f9a3abcd6ff6" width="60%" height="60%">
+
+### 노션
+[투두리스트 노션 링크](https://nutritious-switch-ee8.notion.site/To-do-List-d2530e7dda684c1e8ca74ce20b5e6180?pvs=4)
